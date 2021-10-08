@@ -1,0 +1,14 @@
+- become: yes
+  hosts: all
+  name: apache-install
+  tasks:
+    - name: run echo command
+      command: /bin/echo hello world
+    - name: Install httpd
+      yum: name=httpd update_cache=yes state=latest
+      notify:
+        - Restart httpd
+
+  handlers:
+    - name: Restart httpd
+      service: name=httpd state=restarted
