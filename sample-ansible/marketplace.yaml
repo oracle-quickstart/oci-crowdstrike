@@ -1,0 +1,315 @@
+# Title shown in Application Information tab.
+title: Oracle Linux VM - Terraform and Ansible Deployment
+description: This terraform code deploy a Linux VM and Shows use of Ansible
+schemaVersion: 1.1.0
+version: "20210210"
+logoUrl: 
+source:
+  type: marketplace
+  reference: 
+
+locale: "en"
+variableGroups:
+  - title: "Hidden Variable Group"
+    visible: false
+    variables:
+      - tenancy_ocid
+      - region
+      - availability_domain_number
+      - network_strategy_enum
+      - subnet_type_enum
+      - nsg_config_enum
+      - template_name
+      - template_version
+      - ssh_config_file
+
+  - title: "Common Configuration"
+    variables:
+      - compute_compartment_ocid
+      - network_compartment_ocid
+      - spoke_vm_compute_shape
+      - spoke_vm_flex_shape_ocpus
+      - availability_domain_name
+      - ssh_public_key
+      - instance_launch_options_network_type
+      - network_strategy
+      - bastion_host_allow_cidr
+
+  - title: "Web VCN Configuration"
+    variables:
+      - vm_display_name_web
+      - web_vcn_id
+      - web_vcn_cidr_block
+      - web_vcn_dns_label
+      - web_vcn_display_name
+      - web_lb_subnet_id
+      - web_lb_subnet_cidr_block
+      - web_lb_subnet_display_name
+      - web_lb_subnet_dns_label
+
+  - title: "Ansibe Configuration"
+    variables:
+      - playbook_path
+      - region_name
+      - destination_ssh_username
+
+variables:
+  # Hidden variables
+  playbook_path:
+    type: string
+    required: true
+    default: ./httpd/httpd-install.yaml
+    title: Playbook File Path Name
+    description: File Path which includes Ansible Yaml file to install httpd
+
+  bastion_host_allow_cidr:
+    type: string
+    required: true
+    default: 0.0.0.0/0
+    title: Bastion Host Allow CIDR
+    description: Bastion Host Allow CIDR Addresses
+
+  region_name:
+    type: string
+    required: true
+    default: us-ashburn-1
+    title: Bastion Region Name
+    description: Bastion Service Region Value
+
+  ssh_config_file:
+    type: string
+    required: true
+    default: ./ssh-config/ssh-config.tpl
+    title: SSH Config Template File
+    description: File Containing SSH Configuration
+  
+  destination_ssh_username:
+    type: string
+    required: true
+    default: opc
+    title: Destination Host SSH Username
+    description: Destination Host SSH User Name
+  
+  tenancy_ocid:
+    type: string
+    title: Tenancy ID
+    description: The Oracle Cloud Identifier (OCID) for your tenancy
+    required: true
+
+  compute_compartment_ocid:
+    type: oci:identity:compartment:id
+    required: true
+    title: Compartment OCID
+    description: The compartment in which to create all Compute resources
+    default: compartment_ocid
+
+  network_compartment_ocid:
+    type: oci:identity:compartment:id
+    required: true
+    title: Network Compartment OCID
+    description: The compartment in which to create all Network resources
+    default: compartment_ocid
+
+  region:
+    type: oci:identity:region:name
+    title: Region
+    description: The region in which to create all resources
+    required: true
+
+  availability_domain_name:
+    type: oci:identity:availabilitydomain:name
+    dependsOn:
+      compartmentId: compartment_ocid
+    required: true
+    default: 1
+    title: Availability Domain
+    description: Availability Domain
+
+  availability_domain_number:
+    type: string
+    required: false
+    description: Availability Domain Number (Not used)
+
+  ssh_public_key:
+    type: string
+    required: true
+    title: Public SSH Key string
+    description: Public SSH Key to access VM via SSH
+
+  vm_display_name_web:
+    type: string
+    required: true
+    default: web-app
+    title: Web Instance Name(s)
+    description: The name of the Instance of Web Tier VMs
+
+  spoke_vm_compute_shape:
+    type: oci:core:instanceshape:name
+    default: VM.Standard2.1
+    title: Spoke Compute Shape
+    required: true
+    description: Compute Shape of Web/Db Tier VMs
+    dependsOn:
+      compartmentId: compartment_ocid
+
+  spoke_vm_flex_shape_ocpus:
+    visible:
+      eq:
+        - spoke_vm_compute_shape
+        - "VM.Standard.E3.Flex"
+    type: integer
+    default: 1
+    title: Flex Shape OCPUs
+    minimum: 1
+    maximum: 4
+    required: false
+
+  instance_launch_options_network_type:
+    type: enum
+    default: "PARAVIRTUALIZED"
+    title: Launch options
+    description: NIC Attachment Type
+    enum:
+      - "PARAVIRTUALIZED"
+      - "VFIO"
+    required: true
+
+  # Network Type Options
+  network_strategy:
+    type: enum
+    title: Network Strategy
+    description: Create or use existing Network Stack (VCN and Subnet)
+    enum:
+      - "Create New VCN and Subnet"
+      - "Use Existing VCN and Subnet"
+    required: true
+    default: "Create New VCN and Subnet"
+
+  web_vcn_id:
+    visible: #($network_strategy  == "Use Existing VCN and Subnet")
+      eq:
+        - network_strategy
+        - "Use Existing VCN and Subnet"
+    type: oci:core:vcn:id
+    dependsOn:
+      compartmentId: compartment_ocid
+    required: true
+    title: Existing Network - Web VCN
+    description: An existing Web Virtual Cloud Network (VCN) in which to create the compute instances, network resources, and load balancers. If not specified, a new VCN is created.
+
+  web_vcn_display_name:
+    visible: #($network_strategy  == ""Create New VCN and Subnet"")
+      eq:
+        - network_strategy
+        - "Create New VCN and Subnet"
+    type: string
+    default: web-vcn
+    required: true
+    title: Web Tier Virtual Cloud Network (VCN)
+    description: The name of the new Virtual Cloud Network (VCN)
+
+  web_vcn_cidr_block:
+    visible: #($network_strategy  == ""Create New VCN and Subnet"")
+      eq:
+        - network_strategy
+        - "Create New VCN and Subnet"
+    type: string
+    required: true
+    default: 10.0.0.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    title: Web VCN CIDR BLOCK
+    description: The CIDR of the new Virtual Cloud Network (VCN). If you plan to peer this VCN with another VCN, the VCNs must not have overlapping CIDRs.
+
+  web_lb_subnet_id:
+    visible: #($network_strategy  == "Use Existing VCN and Subnet")
+      eq:
+        - network_strategy
+        - "Use Existing VCN and Subnet"
+    type: oci:core:subnet:id
+    dependsOn:
+      vcnId: vcn_id
+      compartmentId: compartment_ocid
+    default: ""
+    required: true
+    title: Existing Web Loadbalancer Public Subnet
+    description: An existing web private subnet to use for transit connectivity between hub and spoke. This subnet must already be present in the chosen VCN.
+
+  web_lb_subnet_display_name:
+    visible: #($network_strategy  == ""Create New VCN and Subnet"")
+      eq:
+        - network_strategy
+        - "Create New VCN and Subnet"
+    type: string
+    default: web_lb-subnet
+    required: true
+    title: Web Loadbalancer Public Subnet
+    description: The name of the new Trust Subnet
+
+  web_lb_subnet_cidr_block:
+    visible: #($network_strategy  == ""Create New VCN and Subnet"")
+      eq:
+        - network_strategy
+        - "Create New VCN and Subnet"
+    type: string
+    default: 10.0.0.128/25
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    required: true
+    title: Web Loadbalancer Public Subnet CIDR
+    description: The CIDR of the new Subnet. The new subnet's CIDR should not overlap with any other subnet CIDRs.
+
+  web_vcn_dns_label:
+    visible: #($network_strategy  == ""Create New VCN and Subnet"")
+      eq:
+        - network_strategy
+        - "Create New VCN and Subnet"
+    type: string
+    required: true
+    default: web
+    title: Web VCN DNS Label
+    description: VCN DNS Label. Only letters and numbers, starting with a letter. 15 characters max.
+
+outputGroups:
+  # - title: "Common Connection"
+  #   outputs:
+  #     - instance_public_ips
+  #     - instance_private_ips
+  #     - instance_id
+  #     - instance_https_urls
+  #     - cluster_ip
+
+outputs:
+
+  # instance_https_urls:
+  #   type: link
+  #   title: Open Palo Alto HA-VM Portals
+  #   visible: true
+
+  # firewallA_instance_public_ips:
+  #   type: link
+  #   title: Firewall-A Instance Public IP
+  #   visible: true
+
+  # firewallA_instance_private_ips:
+  #   type: link
+  #   title: Firewall-A Instance Private IP
+  #   visible: true
+
+  # firewallB_instance_public_ips:
+  #   type: link
+  #   title: Firewall-B Instance Public IP
+  #   visible: true
+
+  # firewallB_instance_private_ips:
+  #   type: link
+  #   title: Firewall-B Instance Private IP
+  #   visible: true
+
+  # initial_instruction:
+  #   type: string
+  #   title: Initial Instruction
+  #   visible: false
+
+  # subscription:
+  #   type: string
+  #   title: Subscription
+  #   visible: false
