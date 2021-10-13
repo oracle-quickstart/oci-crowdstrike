@@ -52,9 +52,16 @@ variableGroups:
       - playbook_path
       - region_name
       - destination_ssh_username
+      - create_custom_image
 
 variables:
   # Hidden variables
+  create_custom_image:
+    type: boolean
+    title: "Create Custom Image of Instance after Ansible Successful Run"
+    description: "Enable creating custom image out of Web VM Instance will reboot instance."
+    default: false
+
   playbook_path:
     type: string
     required: true

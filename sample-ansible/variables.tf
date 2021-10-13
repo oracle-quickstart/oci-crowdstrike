@@ -23,6 +23,12 @@ variable "spoke_vm_compute_shape" {
   default     = "VM.Standard2.1" //2 cores
 }
 
+variable "create_custom_image" {
+  type        = bool
+  default = false
+  description = "Enable creating custom image out of Web VM Instance"
+}
+
 variable "spoke_vm_flex_shape_ocpus" {
   description = "Spoke VMs Flex Shape OCPUs"
   default     = 4
