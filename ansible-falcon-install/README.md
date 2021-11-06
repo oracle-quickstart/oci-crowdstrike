@@ -1,10 +1,10 @@
-# Terraform Module to deploy httpd Application on Spoke VM using Ansible
+# Terraform Module to deploy Falcon Sensor Application on Linux VM using Ansible
 
-This terraform module deploys **httpd** application on end host and peform below operations: 
-- Deploy Web VCN and VM 
+This terraform module deploys **falcon-sensor** application on end host and peform below operations: 
+- Deploy Virtual Cloud Network, Resources and a Linux VM 
 - Deploy Bastion Service and Session 
 - Utilize Bastion Session as Proxy to allow access to Web VM 
-- Utilize **Ansible** which is part of **ORM** host to install **httpd** application. 
+- Utilize **Ansible** which is part of **ORM** host to install **falcon-sensor** application. 
 
 ## Architecture Diagram
 
@@ -17,6 +17,7 @@ You should complete below pre-requisites before proceeding to next section:
   - Tenancy OCID, User OCID, Compartment OCID, Private and Public Keys are setup properly.
 - Permission to `manage` the following types of resources in your Oracle Cloud Infrastructure tenancy: `vcns`, `internet-gateways`, `route-tables`, `security-lists`, `subnets`, `bastion service` and `instances`.
 - Quota to create the following resources: 1 VCNS, 1 subnets, 1 Bastion Service/Session and 1 compute instance.
+- Have an active account on Falcon Sensor SaaS platform to download falcon-sensor binary and Customer Account details. 
 
 If you don't have the required permissions and quota, contact your tenancy administrator. See [Policy Reference](https://docs.cloud.oracle.com/en-us/iaas/Content/Identity/Reference/policyreference.htm), [Service Limits](https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/servicelimits.htm), [Compartment Quotas](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/resourcequotas.htm).
 
@@ -31,7 +32,7 @@ You can deploy this architecture using two approach explained in each section:
 
 In this section you will follow each steps given below to create this architecture:
 
-1. Click [![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://console.us-phoenix-1.oraclecloud.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/oracle-quickstart/oci-crowdstrike/raw/main/sample-ansible/resource-manager/ansible-httpd.zip)
+1. Click [![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://console.us-phoenix-1.oraclecloud.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/oracle-quickstart/oci-crowdstrike/raw/main/ansible-falcon-install/resource-manager/ansible-falcon-sensor.zip)
 
     > If you aren't already signed in, when prompted, enter the tenancy and user credentials.
 
@@ -53,7 +54,6 @@ In this section you will follow each steps given below to create this architectu
 
 9. If you no longer require your infrastructure, return to the Stack Details page and **Terraform Actions**, and select **Destroy**.
 
-
 ## Deploy Using the Terraform CLI
 
 In this section you will use **Terraform** locally to create this architecture: 
@@ -64,7 +64,7 @@ In this section you will use **Terraform** locally to create this architecture:
 
     ```
     git clone https://github.com/oracle-quickstart/oci-crowdstrike.git
-    cd oci-crowdstrike/sample-ansible/
+    cd oci-crowdstrike/ansible-falcon-install/
     ls
     ```
 
